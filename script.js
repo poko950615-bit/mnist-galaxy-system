@@ -3,7 +3,7 @@
  * 包含：繪圖、相機即時辨識、語音控制、雲端 API 串接、銀河視覺特效
  */
 
-// --- 配置區：修正為相對路徑，這是解決 502/404 的關鍵 ---
+// --- 關鍵配置：改為相對路徑以確保在 Render 部署環境穩定通訊 ---
 const RENDER_URL = "/predict"; 
 
 const canvas = document.getElementById('canvas');
@@ -28,7 +28,7 @@ let realtimeInterval = null;
 let lastX = 0;
 let lastY = 0;
 
-// 初始化系統
+// --- 初始化系統 ---
 function init() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -39,10 +39,10 @@ function init() {
     addGalaxyEffects();
 }
 
+// 銀河背景裝飾效果：在畫布角落添加微小星點
 function addGalaxyEffects() {
     setTimeout(() => {
         if (!cameraStream) {
-            // 在畫布角落添加一個小星星效果 (裝飾用)
             ctx.fillStyle = "rgba(163, 217, 255, 0.3)";
             ctx.beginPath();
             ctx.arc(650, 20, 3, 0, Math.PI * 2);
@@ -57,6 +57,7 @@ function addGalaxyEffects() {
     }, 500);
 }
 
+// 更新畫筆狀態 (粗細與顏色)
 function updatePen() {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -69,6 +70,7 @@ function updatePen() {
     }
 }
 
+// 切換橡皮擦模式
 function toggleEraser() {
     isEraser = !isEraser;
     eraserBtn.innerText = isEraser ? "橡皮擦：開啟" : "橡皮擦：關閉";
@@ -80,6 +82,7 @@ function toggleEraser() {
     }
 }
 
+// 清空畫布邏輯
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (!cameraStream) {
@@ -93,6 +96,7 @@ function clearCanvas() {
     addGalaxyEffects();
 }
 
+// 按鈕視覺回饋特效
 function addVisualFeedback(color) {
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => {
@@ -105,6 +109,7 @@ function addVisualFeedback(color) {
     });
 }
 
+// 相機開關控制
 async function toggleCamera() {
     if (cameraStream) {
         stopCamera();
@@ -131,6 +136,7 @@ async function toggleCamera() {
     }
 }
 
+// 停止相機
 function stopCamera() {
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
@@ -144,13 +150,13 @@ function stopCamera() {
     addVisualFeedback("#34495e");
 }
 
-// 繪畫事件處理
+// --- 繪畫事件處理 ---
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
-// 觸控支援
+// 觸控支援 (手機平板)
 canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) startDrawing(e);
 }, { passive: false });
@@ -208,6 +214,7 @@ function stopDrawing() {
     }
 }
 
+// 畫筆粒子特效
 function addDrawingEffect(x, y) {
     const effect = document.createElement('div');
     effect.style.position = 'fixed';
@@ -224,7 +231,7 @@ function addDrawingEffect(x, y) {
     setTimeout(() => effect.remove(), 500);
 }
 
-// --- API 串接區：即時辨識 ---
+// --- API 串接區：即時辨識 (相機模式) ---
 async function predictRealtime() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
@@ -245,6 +252,7 @@ async function predictRealtime() {
 
         if (cameraStream) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 繪製辨識框 (Boxes)
             if (data.boxes && data.details) {
                 data.boxes.forEach((box, index) => {
                     ctx.strokeStyle = "#00FF00";
@@ -261,11 +269,11 @@ async function predictRealtime() {
             updateDetails(data);
         }
     } catch (err) {
-        console.log("正在連接雲端銀河伺服器...");
+        console.log("正在連接雲端伺服器...");
     }
 }
 
-// --- API 串接區：手寫/上傳辨識 ---
+// --- API 串接區：靜態辨識 (手寫/上傳模式) ---
 async function predict() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
@@ -298,6 +306,7 @@ async function predict() {
     }
 }
 
+// 更新詳細辨識報告內容
 function updateDetails(data) {
     let html = "<b>詳細辨識資訊：</b><br>";
     if (!data.details || data.details.length === 0) {
@@ -311,7 +320,7 @@ function updateDetails(data) {
     confDetails.innerHTML = html;
 }
 
-// 上傳功能
+// 上傳檔案功能
 function triggerFile() {
     fileInput.click();
     addVisualFeedback("#3498db");
@@ -339,7 +348,7 @@ function handleFile(event) {
     reader.readAsDataURL(file);
 }
 
-// 語音識別系統
+// --- 語音識別系統 ---
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -369,15 +378,17 @@ function initSpeechRecognition() {
 
     recognition.onresult = (event) => {
         const transcript = event.results[event.results.length - 1][0].transcript.trim();
+        // 判斷指令
         if (transcript.includes('清除') || transcript.includes('清空')) {
             clearCanvas();
-        } else if (transcript.includes('開始') || transcript.includes('辨識')) {
+        } else if (transcript.includes('開始辨識') || transcript.includes('辨識')) {
             predict();
-        } else if (transcript.includes('鏡頭') || transcript.includes('相機')) {
+        } else if (transcript.includes('開啟鏡頭') || transcript.includes('相機')) {
             toggleCamera();
         } else if (transcript.includes('橡皮擦')) {
             toggleEraser();
         } else {
+            // 如果不是指令，則顯示語音內容
             digitDisplay.innerText = transcript;
             confDetails.innerHTML = `<b>語音來源：</b><span style="color:#ff6b9d">${transcript}</span>`;
             addVisualFeedback("#ff6b9d");
@@ -401,12 +412,13 @@ function toggleVoice() {
         isVoiceActive = false;
         recognition.stop();
     } else {
+        // 先獲取一次權限後啟動
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
             stream.getTracks().forEach(track => track.stop());
             recognition.start();
-        }).catch(() => alert("請開啟麥克風權限"));
+        }).catch(() => alert("請開啟麥克風權限以使用語音功能"));
     }
 }
 
-// 啟動
+// 執行系統初始化
 init();
