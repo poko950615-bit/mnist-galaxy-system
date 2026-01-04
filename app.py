@@ -6,23 +6,26 @@ import numpy as np
 import cv2
 import base64
 
-# 修改：設定 static_folder 為目前目錄，以便讀取 HTML 檔案
-app = Flask(__name__, static_folder='.')
-# 允許來自任何網域的請求 (CORS)，這樣你的前端 HTML 才能呼叫它
+# --- 核心設定：修正路徑確保 index.html 與 style.css 能被讀取 ---
+# 設定 static_folder 為目前目錄 '.'，並將 static_url_path 設為空字串
+app = Flask(__name__, static_folder='.', static_url_path='')
+# 允許跨來源請求，確保前端能與後端通訊
 CORS(app)
 
-# 載入模型 - 請確保檔案就在 app.py 旁邊
+# 載入模型 - 請確保 mnist_model.h5 檔案就在 app.py 旁邊
 MODEL_PATH = 'mnist_model.h5'
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# 新增方案 B 路由：讓 Render 網址直接顯示網頁介面
+# --- 路由設定：確保 Render 網址打開就是你的銀河介面 ---
 @app.route('/')
 def index():
+    # 當訪問根網址時，回傳同目錄下的 index.html
     return send_from_directory('.', 'index.html')
 
+# --- 影像預處理邏輯 (完整保留你的方案) ---
 def advanced_preprocess(roi):
     """
-    保留原始 p.py 的高階預處理邏輯
+    保留原始的高階預處理邏輯：筆畫強化、動態 Padding、質心校正
     """
     # 強化筆畫：稍微膨脹，確保 7 的橫線與 1 有明顯區別
     kernel = np.ones((2,2), np.uint8)
@@ -45,6 +48,7 @@ def advanced_preprocess(roi):
         
     return roi_rs.reshape(1, 28, 28, 1).astype('float32') / 255.0
 
+# --- 預測路由 (完整保留你的影像清洗與切割機制) ---
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -59,7 +63,7 @@ def predict():
         
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        # 背景反轉檢測
+        # 背景反轉檢測 (黑底白字轉化)
         if np.mean(gray) > 120:
             gray = 255 - gray
 
@@ -101,7 +105,7 @@ def predict():
             cleaned_thresh[labels == i] = 255
             comps.append((x, y, w, h))
         
-        # 按 X 座標排序
+        # 按 X 座標排序，確保數字順序正確
         comps.sort(key=lambda c: c[0])
         final_res = ""
         details = []
@@ -109,7 +113,7 @@ def predict():
         for (x, y, w, h) in comps:
             roi = cleaned_thresh[y:y+h, x:x+w]
             
-            # 連體字切割邏輯
+            # 連體字切割邏輯：如果寬度太寬則嘗試從中間切割
             if w > h * 1.3:
                 proj = np.sum(roi, axis=0)
                 split_x = np.argmin(proj[int(w*0.3):int(w*0.7)]) + int(w*0.3)
@@ -127,7 +131,7 @@ def predict():
             pred = model.predict(advanced_preprocess(roi), verbose=0)
             digit, conf = int(np.argmax(pred)), float(np.max(pred))
             
-            # 信心度門檻
+            # 信心度門檻過濾
             if is_realtime and conf < 0.85:
                 continue
                 
@@ -143,7 +147,8 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 這是 Render 部署最重要的部分：監聽環境變數提供的 Port
+# --- 啟動設定：監聽 Render 環境變數提供的 Port ---
 if __name__ == '__main__':
+    # Render 會自動分配一個 PORT 號碼
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
