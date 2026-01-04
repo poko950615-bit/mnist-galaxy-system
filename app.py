@@ -1,18 +1,24 @@
 import os
 import tensorflow as tf
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 import cv2
 import base64
 
-app = Flask(__name__)
+# 修改：設定 static_folder 為目前目錄，以便讀取 HTML 檔案
+app = Flask(__name__, static_folder='.')
 # 允許來自任何網域的請求 (CORS)，這樣你的前端 HTML 才能呼叫它
 CORS(app)
 
 # 載入模型 - 請確保檔案就在 app.py 旁邊
 MODEL_PATH = 'mnist_model.h5'
 model = tf.keras.models.load_model(MODEL_PATH)
+
+# 新增方案 B 路由：讓 Render 網址直接顯示網頁介面
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
 
 def advanced_preprocess(roi):
     """
