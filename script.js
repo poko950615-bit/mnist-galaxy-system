@@ -1,9 +1,9 @@
 /**
  * 銀河主題手寫數字辨識系統 - 完整前端邏輯
- * 包含：繪圖、相機即時辨識、語音控制、雲端 API 串接
+ * 包含：繪圖、相機即時辨識、語音控制、雲端 API 串接、銀河視覺特效
  */
 
-// --- 關鍵配置：改為相對路徑以確保在 Render 部署環境穩定通訊 ---
+// --- 配置區：修正為相對路徑，這是解決 502/404 的關鍵 ---
 const RENDER_URL = "/predict"; 
 
 const canvas = document.getElementById('canvas');
@@ -117,7 +117,7 @@ async function toggleCamera() {
             video.srcObject = cameraStream;
             video.style.display = "block";
             mainBox.classList.add('cam-active');
-            camToggleBtn.innerHTML = '<span class="btn-icon">📸</span> 關閉鏡頭';
+            camToggleBtn.innerHTML = '<span class="btn-icon">📷</span> 關閉鏡頭';
 
             realtimeInterval = setInterval(() => {
                 predictRealtime();
