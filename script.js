@@ -1,10 +1,10 @@
 /**
- * »Èªe¥DÃD¤â¼g¼Æ¦r¿ëÃÑ¨t²Î - §¹¾ã«eºİÅŞ¿è
- * ¥]§t¡GÃ¸¹Ï¡B¬Û¾÷§Y®É¿ëÃÑ¡B»y­µ±±¨î¡B¶³ºİ API ¦ê±µ
+ * éŠ€æ²³ä¸»é¡Œæ‰‹å¯«æ•¸å­—è¾¨è­˜ç³»çµ± - å®Œæ•´å‰ç«¯é‚è¼¯
+ * åŒ…å«ï¼šç¹ªåœ–ã€ç›¸æ©Ÿå³æ™‚è¾¨è­˜ã€èªéŸ³æ§åˆ¶ã€é›²ç«¯ API ä¸²æ¥
  */
 
-// --- °t¸m°Ï¡G³¡¸p«á½Ğ­×§ï¦¹ºô§} ---
-const RENDER_URL = "https://§Aªº±M®×¦WºÙ.onrender.com/predict"; 
+// --- é…ç½®å€ï¼šéƒ¨ç½²å¾Œè«‹ä¿®æ”¹æ­¤ç¶²å€ ---
+const RENDER_URL = "https://mnist-galaxy-system.onrender.com/predict"; 
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -28,21 +28,21 @@ let realtimeInterval = null;
 let lastX = 0;
 let lastY = 0;
 
-// ªì©l¤Æ¨t²Î
+// åˆå§‹åŒ–ç³»çµ±
 function init() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     updatePen();
     initSpeechRecognition();
 
-    // ²K¥[»Èªe¥DÃDªì©l¤Æ®ÄªG
+    // æ·»åŠ éŠ€æ²³ä¸»é¡Œåˆå§‹åŒ–æ•ˆæœ
     addGalaxyEffects();
 }
 
 function addGalaxyEffects() {
     setTimeout(() => {
         if (!cameraStream) {
-            // ¦bµe¥¬¨¤¸¨²K¥[¤@­Ó¤p¬P¬P®ÄªG (¸Ë¹¢¥Î)
+            // åœ¨ç•«å¸ƒè§’è½æ·»åŠ ä¸€å€‹å°æ˜Ÿæ˜Ÿæ•ˆæœ (è£é£¾ç”¨)
             ctx.fillStyle = "rgba(163, 217, 255, 0.3)";
             ctx.beginPath();
             ctx.arc(650, 20, 3, 0, Math.PI * 2);
@@ -71,7 +71,7 @@ function updatePen() {
 
 function toggleEraser() {
     isEraser = !isEraser;
-    eraserBtn.innerText = isEraser ? "¾ó¥ÖÀ¿¡G¶}±Ò" : "¾ó¥ÖÀ¿¡GÃö³¬";
+    eraserBtn.innerText = isEraser ? "æ©¡çš®æ“¦ï¼šé–‹å•Ÿ" : "æ©¡çš®æ“¦ï¼šé—œé–‰";
     eraserBtn.classList.toggle('eraser-active', isEraser);
     updatePen();
 
@@ -87,7 +87,7 @@ function clearCanvas() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     digitDisplay.innerText = "---";
-    confDetails.innerText = "µe¥¬¤w²MªÅ¡A»Èªe¤w²bªÅ";
+    confDetails.innerText = "ç•«å¸ƒå·²æ¸…ç©ºï¼ŒéŠ€æ²³å·²æ·¨ç©º";
 
     addVisualFeedback("#2ecc71");
     addGalaxyEffects();
@@ -117,7 +117,7 @@ async function toggleCamera() {
             video.srcObject = cameraStream;
             video.style.display = "block";
             mainBox.classList.add('cam-active');
-            camToggleBtn.innerHTML = '<span class="btn-icon">??</span> Ãö³¬ÃèÀY';
+            camToggleBtn.innerHTML = '<span class="btn-icon">??</span> é—œé–‰é¡é ­';
 
             realtimeInterval = setInterval(() => {
                 predictRealtime();
@@ -126,7 +126,7 @@ async function toggleCamera() {
             clearCanvas();
             addVisualFeedback("#9b59b6");
         } catch (err) {
-            alert("ÃèÀY±Ò°Ê¥¢±Ñ: " + err);
+            alert("é¡é ­å•Ÿå‹•å¤±æ•—: " + err);
         }
     }
 }
@@ -139,18 +139,18 @@ function stopCamera() {
     if (realtimeInterval) clearInterval(realtimeInterval);
     video.style.display = "none";
     mainBox.classList.remove('cam-active');
-    camToggleBtn.innerHTML = '<span class="btn-icon">??</span> ¶}±ÒÃèÀY';
+    camToggleBtn.innerHTML = '<span class="btn-icon">??</span> é–‹å•Ÿé¡é ­';
     init();
     addVisualFeedback("#34495e");
 }
 
-// Ã¸µe¨Æ¥ó³B²z
+// ç¹ªç•«äº‹ä»¶è™•ç†
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
-// Ä²±±¤ä´©
+// è§¸æ§æ”¯æ´
 canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) startDrawing(e);
 }, { passive: false });
@@ -224,7 +224,7 @@ function addDrawingEffect(x, y) {
     setTimeout(() => effect.remove(), 500);
 }
 
-// --- API ¦ê±µ°Ï¡G§Y®É¿ëÃÑ ---
+// --- API ä¸²æ¥å€ï¼šå³æ™‚è¾¨è­˜ ---
 async function predictRealtime() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
@@ -261,11 +261,11 @@ async function predictRealtime() {
             updateDetails(data);
         }
     } catch (err) {
-        console.log("¥¿¦b³s±µ¶³ºİ»Èªe¦øªA¾¹...");
+        console.log("æ­£åœ¨é€£æ¥é›²ç«¯éŠ€æ²³ä¼ºæœå™¨...");
     }
 }
 
-// --- API ¦ê±µ°Ï¡G¤â¼g/¤W¶Ç¿ëÃÑ ---
+// --- API ä¸²æ¥å€ï¼šæ‰‹å¯«/ä¸Šå‚³è¾¨è­˜ ---
 async function predict() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
@@ -299,19 +299,19 @@ async function predict() {
 }
 
 function updateDetails(data) {
-    let html = "<b>¸Ô²Ó¿ëÃÑ¸ê°T¡G</b><br>";
+    let html = "<b>è©³ç´°è¾¨è­˜è³‡è¨Šï¼š</b><br>";
     if (!data.details || data.details.length === 0) {
-        html += "µ¥«İ¦³®Ä¼Æ¦r¤JÃè...";
+        html += "ç­‰å¾…æœ‰æ•ˆæ•¸å­—å…¥é¡...";
     } else {
         data.details.forEach((item, i) => {
             const color = i % 2 === 0 ? "#a3d9ff" : "#ff6b9d";
-            html += `¼Æ¦r ${i + 1}: <b style="color:${color}">${item.digit}</b> («H¤ß«×: ${item.conf})<br>`;
+            html += `æ•¸å­— ${i + 1}: <b style="color:${color}">${item.digit}</b> (ä¿¡å¿ƒåº¦: ${item.conf})<br>`;
         });
     }
     confDetails.innerHTML = html;
 }
 
-// ¤W¶Ç¥\¯à
+// ä¸Šå‚³åŠŸèƒ½
 function triggerFile() {
     fileInput.click();
     addVisualFeedback("#3498db");
@@ -339,7 +339,7 @@ function handleFile(event) {
     reader.readAsDataURL(file);
 }
 
-// »y­µÃÑ§O¨t²Î
+// èªéŸ³è­˜åˆ¥ç³»çµ±
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -369,17 +369,17 @@ function initSpeechRecognition() {
 
     recognition.onresult = (event) => {
         const transcript = event.results[event.results.length - 1][0].transcript.trim();
-        if (transcript.includes('²M°£') || transcript.includes('²MªÅ')) {
+        if (transcript.includes('æ¸…é™¤') || transcript.includes('æ¸…ç©º')) {
             clearCanvas();
-        } else if (transcript.includes('¶}©l') || transcript.includes('¿ëÃÑ')) {
+        } else if (transcript.includes('é–‹å§‹') || transcript.includes('è¾¨è­˜')) {
             predict();
-        } else if (transcript.includes('ÃèÀY') || transcript.includes('¬Û¾÷')) {
+        } else if (transcript.includes('é¡é ­') || transcript.includes('ç›¸æ©Ÿ')) {
             toggleCamera();
-        } else if (transcript.includes('¾ó¥ÖÀ¿')) {
+        } else if (transcript.includes('æ©¡çš®æ“¦')) {
             toggleEraser();
         } else {
             digitDisplay.innerText = transcript;
-            confDetails.innerHTML = `<b>»y­µ¨Ó·½¡G</b><span style="color:#ff6b9d">${transcript}</span>`;
+            confDetails.innerHTML = `<b>èªéŸ³ä¾†æºï¼š</b><span style="color:#ff6b9d">${transcript}</span>`;
             addVisualFeedback("#ff6b9d");
         }
     };
@@ -387,10 +387,10 @@ function initSpeechRecognition() {
 
 function updateVoiceButton() {
     if (isVoiceActive) {
-        voiceBtn.innerHTML = '<span class="btn-icon">??</span> »y­µ¿é¤J¡G¶}±Ò';
+        voiceBtn.innerHTML = '<span class="btn-icon">??</span> èªéŸ³è¼¸å…¥ï¼šé–‹å•Ÿ';
         voiceBtn.classList.add('voice-active');
     } else {
-        voiceBtn.innerHTML = '<span class="btn-icon">??</span> »y­µ¿é¤J¡GÃö³¬';
+        voiceBtn.innerHTML = '<span class="btn-icon">??</span> èªéŸ³è¼¸å…¥ï¼šé—œé–‰';
         voiceBtn.classList.remove('voice-active');
     }
 }
@@ -404,9 +404,10 @@ function toggleVoice() {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
             stream.getTracks().forEach(track => track.stop());
             recognition.start();
-        }).catch(() => alert("½Ğ¶}±Ò³Á§J­·Åv­­"));
+        }).catch(() => alert("è«‹é–‹å•Ÿéº¥å…‹é¢¨æ¬Šé™"));
     }
 }
 
-// ±Ò°Ê
+// å•Ÿå‹•
+
 init();
