@@ -15,7 +15,6 @@ model = None
 try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(base_dir, 'mnist_model.h5')
-    # 使用 ResNet 模型
     model = tf.keras.models.load_model(model_path)
     print("✅ [系統訊息] ResNet 深度辨識模型已就緒！")
 except Exception as e:
@@ -41,7 +40,6 @@ def advanced_preprocess(roi):
 
 @app.route('/')
 def index():
-    """確保能找到 index.html，解決 404 問題"""
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/predict', methods=['POST'])
@@ -53,21 +51,18 @@ def predict():
         data = req_data['image']
         is_realtime = req_data.get('is_realtime', False)
         
-        # 解碼圖片
         encoded = data.split(',')[1]
         img_bytes = base64.b64decode(encoded)
         nparr = np.frombuffer(img_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        if np.mean(gray) > 120: gray = 255 - gray # 處理黑白反轉
+        if np.mean(gray) > 120: gray = 255 - gray 
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         
-        # 連通區域與影像清洗 (移植自 p.py)
         num, labels, stats, _ = cv2.connectedComponentsWithStats(thresh, connectivity=8)
         cleaned_thresh = np.zeros_like(thresh)
-        h_img, w_img = gray.shape
         comps = []
         MIN_AREA = 500 if is_realtime else 150 
         
@@ -77,7 +72,6 @@ def predict():
             aspect_ratio = w / float(h)
             if aspect_ratio > 2.5 or aspect_ratio < 0.15: continue
             if float(area) / (w * h) < 0.15: continue
-            
             cleaned_thresh[labels == i] = 255
             comps.append((x, y, w, h))
         
@@ -87,12 +81,15 @@ def predict():
         for (x, y, w, h) in comps:
             roi = cleaned_thresh[y:y+h, x:x+w]
             
-            # 連體字切割
+            # 連體字切割 (修正座標變數)
             if w > h * 1.3:
                 proj = np.sum(roi, axis=0)
                 split_x = np.argmin(proj[int(w*0.3):int(w*0.7)]) + int(w*0.3)
-                sub_parts = [(roi[:, :split_x], x), (roi[:, split_x:], x + split_x)]
-                for s_roi, sx in sub_parts:
+                sub_parts = [
+                    (roi[:, :split_x], x, y, split_x, h), 
+                    (roi[:, split_x:], x + split_x, y, w - split_x, h)
+                ]
+                for s_roi, sx, sy, sw, sh in sub_parts:
                     if s_roi.shape[1] < 5: continue
                     inp = advanced_preprocess(s_roi)
                     if inp is not None:
@@ -100,7 +97,7 @@ def predict():
                         d, c = int(np.argmax(p)), float(np.max(p))
                         final_res += str(d)
                         details.append({"digit": d, "conf": f"{c*100:.1f}%"})
-                        boxes.append({'x': int(sx), 'y': int(y), 'w': int(s_roi.shape[1]), 'h': int(h)})
+                        boxes.append({'x': int(sx), 'y': int(sy), 'w': int(sw), 'h': int(sh)})
                 continue
 
             inp = advanced_preprocess(roi)
@@ -117,6 +114,5 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Render 部署必備：監聽環境變數 PORT
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
