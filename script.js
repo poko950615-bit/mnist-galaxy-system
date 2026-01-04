@@ -3,8 +3,8 @@
  * 包含：繪圖、相機即時辨識、語音控制、雲端 API 串接
  */
 
-// --- 配置區：部署後請修改此網址 ---
-const RENDER_URL = "https://mnist-galaxy-system.onrender.com/predict"; 
+// --- 關鍵配置：改為相對路徑以確保在 Render 部署環境穩定通訊 ---
+const RENDER_URL = "/predict"; 
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -117,7 +117,7 @@ async function toggleCamera() {
             video.srcObject = cameraStream;
             video.style.display = "block";
             mainBox.classList.add('cam-active');
-            camToggleBtn.innerHTML = '<span class="btn-icon">??</span> 關閉鏡頭';
+            camToggleBtn.innerHTML = '<span class="btn-icon">📸</span> 關閉鏡頭';
 
             realtimeInterval = setInterval(() => {
                 predictRealtime();
@@ -139,7 +139,7 @@ function stopCamera() {
     if (realtimeInterval) clearInterval(realtimeInterval);
     video.style.display = "none";
     mainBox.classList.remove('cam-active');
-    camToggleBtn.innerHTML = '<span class="btn-icon">??</span> 開啟鏡頭';
+    camToggleBtn.innerHTML = '<span class="btn-icon">📷</span> 開啟鏡頭';
     init();
     addVisualFeedback("#34495e");
 }
@@ -175,7 +175,7 @@ function getCanvasCoordinates(e) {
 }
 
 function startDrawing(e) {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     isDrawing = true;
     const { x, y } = getCanvasCoordinates(e);
     ctx.beginPath();
@@ -186,7 +186,7 @@ function startDrawing(e) {
 }
 
 function draw(e) {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     if (!isDrawing) return;
     const { x, y } = getCanvasCoordinates(e);
     ctx.lineTo(x, y);
@@ -275,7 +275,7 @@ async function predict() {
     tCtx.drawImage(canvas, 0, 0);
 
     try {
-        digitDisplay.innerHTML = '<span class="pulse-icon">??</span>';
+        digitDisplay.innerHTML = '<span class="pulse-icon">🌀</span>';
         const res = await fetch(RENDER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -387,10 +387,10 @@ function initSpeechRecognition() {
 
 function updateVoiceButton() {
     if (isVoiceActive) {
-        voiceBtn.innerHTML = '<span class="btn-icon">??</span> 語音輸入：開啟';
+        voiceBtn.innerHTML = '<span class="btn-icon">🎙️</span> 語音輸入：開啟';
         voiceBtn.classList.add('voice-active');
     } else {
-        voiceBtn.innerHTML = '<span class="btn-icon">??</span> 語音輸入：關閉';
+        voiceBtn.innerHTML = '<span class="btn-icon">🎙️</span> 語音輸入：關閉';
         voiceBtn.classList.remove('voice-active');
     }
 }
@@ -409,5 +409,4 @@ function toggleVoice() {
 }
 
 // 啟動
-
 init();
